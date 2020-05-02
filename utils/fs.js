@@ -1,7 +1,7 @@
 const fs = require('fs');
 const { dirname, resolve } = require('path');
 
-const getRootPath = () => require.main.filename;
+const getRootPath = () => dirname(require.main.filename);
 
 /**
  * Writes file to the folder and create new folder if it is not exists
