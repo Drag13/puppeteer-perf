@@ -4,6 +4,7 @@ const Handlebars = require("handlebars");
 require("./handlebarsHelpers");
 const measureStore = require("../db/flat/measureStore");
 const buildVendor = require("./buildVendor");
+const { writeFileSync } = require('../utils/fs');
 
 const buildTemplate = name => {
     const src = fs.readFileSync(`report/templates/${name}`, "utf8");
@@ -177,9 +178,9 @@ async function generatePageLoadReport(previousRunData, currentRunData) {
     const testName = currentRunData.testName;
     console.log(
         "Generating load time report for previous run id: " +
-            previousRunData.id +
-            " and current id: " +
-            currentRunData.id
+        previousRunData.id +
+        " and current id: " +
+        currentRunData.id
     );
     const res = await constructReportData(
         currentRunData.testName,
@@ -200,7 +201,7 @@ async function generatePageLoadReport(previousRunData, currentRunData) {
 
     const doc = template(res);
     const filename = `generated/pageload/${testName}.html`;
-    fs.writeFileSync(filename, doc);
+    writeFileSync(filename, doc);
     console.log("Page load report written to: " + filename);
     // console.log(JSON.stringify(res, null, 2));
 }
