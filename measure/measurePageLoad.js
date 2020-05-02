@@ -13,9 +13,16 @@ async function initPage(browser) {
     return page;
 }
 
-async function initPageWithMonitor(browser) {
+async function initPageWithMonitor(browser, networkConditions) {
     const page = await initPage(browser);
     const client = await page.target().createCDPSession();
+
+    if (networkConditions) {
+        await client.send('Network.enable');
+        await client.send('Network.emulateNetworkConditions', networkConditions);
+        await client.send('Emulation.setCPUThrottlingRate', { rate: networkConditions.CPUThrottlingRate });
+    }
+
     await client.send("Performance.enable");
     return { client, page };
 }
@@ -82,8 +89,8 @@ const processPerfData = async (
     return runData;
 };
 
-async function runPageLoad(browser, url) {
-    const { page, client } = await initPageWithMonitor(browser);
+async function runPageLoad(browser, url, networkConditions) {
+    const { page, client } = await initPageWithMonitor(browser, networkConditions);
     await page.tracing.start({ path: TRACING_LOCATION });
 
     console.log("Loading url: " + url);
@@ -103,7 +110,7 @@ async function runPageLoad(browser, url) {
 }
 
 module.exports = {
-    measurePageLoad: async (browser, testName, url, iterations = 1) => {
+    measurePageLoad: async (browser, { url, iterations, testName, networkConditions }) => {
         await bootstrapUrl(browser, url);
 
         console.log(`Running '${testName}' page load for ${iterations} iterations`);
@@ -115,10 +122,7 @@ module.exports = {
 
         for (let i = 0; i < iterations; i++) {
             console.log("Executing iteration: " + (i + 1));
-            const { windowTimings, perfMetrics, tracingMetrics } = await runPageLoad(
-                browser,
-                url
-            );
+            const { windowTimings, perfMetrics, tracingMetrics } = await runPageLoad(browser, url, networkConditions);
             windowTimingsResults.push(windowTimings);
             perfTimingResults.push(perfMetrics.perfTimings);
             perfMetricsResults.push(perfMetrics.perfMetrics);

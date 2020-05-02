@@ -2,14 +2,21 @@ const puppeteer = require("puppeteer");
 const commandLineArgs = require('command-line-args')
 
 const { measurePageLoad } = require("./measure/measurePageLoad");
-const { options, validate } = require('./cliOptions');
+const { options, defaultNetworkConditions, validate } = require('./cliOptions');
 
 (async () => {
-    const { url, runs } = validate(commandLineArgs(options));
+    const { url, runs, throttling } = validate(commandLineArgs(options));
+    const perfSettings = {
+        testName: 'load-homepage', //TODO: move to params
+        url,
+        iterations: runs,
+        networkConditions: throttling === 'default' ? defaultNetworkConditions : null
+    };
+
     let browser;
     try {
         browser = await puppeteer.launch();
-        await measurePageLoad(browser, "load-homepage", url, runs);
+        await measurePageLoad(browser, perfSettings);
     } catch (error) {
         console.log("An error occurred: " + error);
         console.log(error.stack);
