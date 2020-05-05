@@ -1,7 +1,20 @@
+const Network = (type) => {
+    switch (type) {
+        case 'f3g':
+            return Fast3g;
+        case 's3g':
+            return Slow3g
+        default:
+            noLimits
+    }
+}
+
 const options = [
     { name: 'url', alias: 'U', type: String, defaultOption: true },
     { name: 'runs', alias: 'R', type: Number, defaultValue: 3 },
-    { name: 'throttling', alias: 'T', type: (v) => v === 'default' ? 'default' : null }
+    { name: 'throttling', alias: 'T', type: Number, defaultValue: 1 },
+    { name: 'network', alias: 'N', type: Network },
+    { name: 'test-name', type: String, defaultValue: 'unnamed_perf_run' }
 ]
 
 function validate(opt) {
@@ -12,16 +25,28 @@ function validate(opt) {
     return opt;
 }
 
-const defaultNetworkConditions = { // TODO: Make it a) optional or loadable from testsuite
-    CPUThrottlingRate: 4,
-    offline: false,
-    latency: 200, // ms
-    downloadThroughput: 780 * 1024 / 8, // 780 kb/s
-    uploadThroughput: 330 * 1024 / 8, // 330 kb/s
+const Fast3g = {
+    downloadThroughput: 1.6 * 1024 * 1024 / 8 * .9,
+    uploadThroughput: 750 * 1024 / 8 * .9,
+    latency: 150 * 3.75,
+    offline: false
+}
+
+const Slow3g = {
+    downloadThroughput: 500 * 1024 / 8 * .8,
+    uploadThroughput: 500 * 1024 / 8 * .8,
+    latency: 400 * 5,
+    offline: false
+}
+
+const noLimits = {
+    downloadThroughput: -1,
+    uploadThroughput: -1,
+    latency: 0,
+    offline: false
 }
 
 module.exports = {
     options,
-    defaultNetworkConditions,
     validate
 };
